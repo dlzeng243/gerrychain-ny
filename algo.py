@@ -12,6 +12,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 def main():
+    # proposal to analyze
     map_name = 'statesenate_ccny_precincts'
 
     # initialize the graph
@@ -31,7 +32,12 @@ def main():
     graph.join(df, None, "GEOID20", "GEOID20")
 
     # initialize the MCMC algorithm
+    # election is essentially looking at the average democratic votes and average republican votes over 2020
     election = Election("CLN20", {"Dem": "adv_20", "Rep": "arv_20"})
+    # initial partition takes in the graph and assignment above, and the updaters are the following:
+        # cut_edges: edges of precincts that are between two districts
+        # population: updates population
+        # CLN20: the election results
     initial_partition = Partition(
         graph,
         assignment="District",
@@ -44,14 +50,21 @@ def main():
 
 
     # senate - used 0.05 population bound and 75 max split counties for ccny_senate
+    # congress - used 0.02 population bound and 50 max split counties
 
+    # ideal population is to make sure the population stays within a certain bound of being equal among the districts
+    # we are only looking at precincts and no blocks, so population varies a lot more
     ideal_population = sum(initial_partition['population'].values())/len(initial_partition)
     proposal = partial(recom, pop_col='pop', pop_target=ideal_population, epsilon=0.02, node_repeats=2)
+    # compactness bound - makes sure we don't make too many cut edges
     compactness_bound = constraints.UpperBound(
         lambda p: len(p["cut_edges"]),
         2*len(initial_partition["cut_edges"])
     )
+    # population constraint
     pop_constraint = constraints.within_percent_of_ideal_population(initial_partition, 0.02)
+
+    # splitting constraint - counts number of counties split and counts number of times counties were split
     def check_split(edge):
         if graph.nodes[edge[0]]["county"] == graph.nodes[edge[1]]["county"]:
             return graph.nodes[edge[0]]["county"]
@@ -72,7 +85,8 @@ def main():
         check_split_county, 50
     )
 
-    chain = MarkovChain(
+    # run the markov chain with the above proposal / constraints
+    chain = MarkovChain( 
         proposal=proposal,
         constraints=[compactness_bound, pop_constraint, constraints.contiguous, splitting_constraint, splitting_constraint2],
         accept=always_accept,
@@ -81,14 +95,17 @@ def main():
     )
 
     # run the algorithm and output data
+    # this data is the sorted percentage of wins for the democrats
     d_percents = [sorted(partition["CLN20"].percents("Dem")) for partition in chain]
     data = pd.DataFrame(d_percents)
     data.to_csv(f"district_assignments/{map_name}_simulation_data.csv")
     
+    # this data is the resulting precinct to district assignment from running gerrychain
     assignment_dict = chain.state.assignment
     districts = pd.DataFrame(data=[(graph.nodes[k]["GEOID20"], assignment_dict[k]) for k, _ in enumerate(assignment_dict)], columns=["GEOID20", "District"])
     districts.to_csv(f"district_assignments/{map_name}_district_assignments.csv", index=False)
 
+    # the following is to make a plot of the win percentages
     fig, ax = plt.subplots(figsize=(8, 6))
 
     # Draw 50% line
