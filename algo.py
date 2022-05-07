@@ -12,7 +12,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 def main():
-    map_name = 'ccny_congress_precints'
+    map_name = 'statesenate_ccny_precincts'
 
     # initialize the graph
     graph = Graph.from_file("./map_data/tl_2020_36_vtd20.zip")
@@ -41,6 +41,9 @@ def main():
             "CLN20": election
         }
     )
+
+
+    # senate - used 0.05 population bound and 75 max split counties for ccny_senate
 
     ideal_population = sum(initial_partition['population'].values())/len(initial_partition)
     proposal = partial(recom, pop_col='pop', pop_target=ideal_population, epsilon=0.02, node_repeats=2)
