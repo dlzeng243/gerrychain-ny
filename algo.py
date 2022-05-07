@@ -57,7 +57,7 @@ def main():
     data.to_csv("single_flip.csv")
     
     assignment_dict = chain.state.assignment
-    districts = pd.DataFrame(data=[(graph.nodes[k]["GEOID20"], v) for (k, v) in assignment_dict], columns=["GEOID20", "District"])
+    districts = pd.DataFrame(data=[(graph.nodes[k]["GEOID20"], assignment_dict[k]) for (k, _) in enumerate(assignment_dict)], columns=["GEOID20", "District"])
     districts.to_csv("district_assignments.csv")
 
     ax = data.boxplot(positions=range(len(data.columns)))
