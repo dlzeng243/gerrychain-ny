@@ -1,0 +1,2 @@
+set()
+<bound method Graph.number_of_nodes of <Graph [14191 nodes, 39093 edges]>>

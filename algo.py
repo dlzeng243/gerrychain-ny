@@ -12,7 +12,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 def main():
-    map_name = 'ny_cong_2022_invalidated_precincts'
+    map_name = 'ccny_congress_precints'
 
     # initialize the graph
     graph = Graph.from_file("./map_data/tl_2020_36_vtd20.zip")
@@ -55,11 +55,13 @@ def main():
         return None
     def check_split_county(p):
         s = set()
+        d = set()
         for edge in p["cut_edges"]:
             if graph.nodes[edge[0]]["county"] == graph.nodes[edge[1]]["county"]:
                 s.add((graph.nodes[edge[0]]["county"], p.assignment[edge[0]]))
                 s.add((graph.nodes[edge[0]]["county"], p.assignment[edge[1]]))
-        return len(s) - 62
+                d.add(graph.nodes[edge[0]]["county"])
+        return len(s) - len(d)
     splitting_constraint = constraints.UpperBound(
         lambda p: len(set(map(check_split, p["cut_edges"]))), 35
     )
