@@ -1,3 +1,4 @@
+from re import S
 from gerrychain import Graph, Partition, Election, MarkovChain, constraints
 from gerrychain.updaters import Tally, cut_edges
 
@@ -52,14 +53,23 @@ def main():
         if graph.nodes[edge[0]]["county"] == graph.nodes[edge[1]]["county"]:
             return graph.nodes[edge[0]]["county"]
         return None
+    def check_split_county(p):
+        s = set()
+        for edge in p["cut_edges"]:
+            if graph.nodes[edge[0]]["county"] == graph.nodes[edge[1]]["county"]:
+                s.add((graph.nodes[edge[0]]["county"], p.assignment[edge[0]]))
+                s.add((graph.nodes[edge[0]]["county"], p.assignment[edge[1]]))
+        return len(s) - 62
     splitting_constraint = constraints.UpperBound(
-        lambda p: len(set(map(check_split, p["cut_edges"]))),
-        35
+        lambda p: len(set(map(check_split, p["cut_edges"]))), 35
+    )
+    splitting_constraint2 = constraints.UpperBound(
+        check_split_county, 50
     )
 
     chain = MarkovChain(
         proposal=proposal,
-        constraints=[compactness_bound, pop_constraint, constraints.contiguous, splitting_constraint],
+        constraints=[compactness_bound, pop_constraint, constraints.contiguous, splitting_constraint, splitting_constraint2],
         accept=always_accept,
         initial_state=initial_partition,
         total_steps=100
