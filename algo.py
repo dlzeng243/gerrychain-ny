@@ -24,7 +24,7 @@ def main():
     graph.join(df, None, "GEOID20", "GEOID20vtd")
 
     # import initial district assignments
-    df = pd.read_csv("ny_cong_2022_invalidated.csv")
+    df = pd.read_csv("./precincts/ny_cong_2022_invalidated.csv")
     df["GEOID20"] = df["GEOID20"].astype(str)
     graph.join(df, None, "GEOID20", "GEOID20")
 
