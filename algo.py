@@ -11,7 +11,7 @@ import pandas as pd
 
 import matplotlib.pyplot as plt
 
-names = ['ny_cong_2022_invalidated_precincts', 'wilson_prieve_congress_precincts']
+names = ['ny_sldu_2022_invalidated_precincts', 'statesenate_ccny_precincts', 'wilson_prieve_senate_precincts']
 
 def main():
     # proposal to analyze
@@ -64,14 +64,14 @@ def main():
         # ideal population is to make sure the population stays within a certain bound of being equal among the districts
         # we are only looking at precincts and no blocks, so population varies a lot more
         ideal_population = sum(initial_partition['population'].values())/len(initial_partition)
-        proposal = partial(recom, pop_col='pop', pop_target=ideal_population, epsilon=CONG_EPS, node_repeats=2)
+        proposal = partial(recom, pop_col='pop', pop_target=ideal_population, epsilon=SENATE_EPS, node_repeats=2)
         # compactness bound - makes sure we don't make too many cut edges
         compactness_bound = constraints.UpperBound(
             lambda p: len(p["cut_edges"]),
             2*len(initial_partition["cut_edges"])
         )
         # population constraint
-        pop_constraint = constraints.within_percent_of_ideal_population(initial_partition, CONG_EPS)
+        pop_constraint = constraints.within_percent_of_ideal_population(initial_partition, SENATE_EPS)
 
         # splitting constraint - counts number of counties split and counts number of times counties were split
         def check_split(edge):
